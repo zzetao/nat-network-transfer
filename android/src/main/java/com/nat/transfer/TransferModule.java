@@ -202,7 +202,7 @@ public class TransferModule {
 
     }
 
-    public void upload(String s, final ModuleResultListener listener) {
+    public void upload(String s, final ModuleResultListener progressListener, final ModuleResultListener resListener) {
         JSONObject args = null;
         args = JSON.parseObject(s);
 
@@ -228,7 +228,7 @@ public class TransferModule {
         if (TextUtils.isEmpty(name)) {
             String[] split = path.split("/");
             if (split.length < 1) {
-                listener.onResult(Util.getError(Constant.UPLOAD_INVALID_ARGUMENT, Constant.UPLOAD_INVALID_ARGUMENT_CODE));
+                resListener.onResult(Util.getError(Constant.UPLOAD_INVALID_ARGUMENT, Constant.UPLOAD_INVALID_ARGUMENT_CODE));
                 return;
             }
             name = split[split.length - 1];
@@ -240,7 +240,7 @@ public class TransferModule {
         }
 
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            listener.onResult(Util.getError(Constant.UPLOAD_INVALID_ARGUMENT, Constant.UPLOAD_INVALID_ARGUMENT_CODE));
+            resListener.onResult(Util.getError(Constant.UPLOAD_INVALID_ARGUMENT, Constant.UPLOAD_INVALID_ARGUMENT_CODE));
             return;
         }
 
@@ -341,7 +341,7 @@ public class TransferModule {
                             // Send a progress event.
                             progress.setLoaded(totalBytes);
                             progressResult.put("progress", progress.getLoaded() / (progress.getTotal() + 0.0));
-                            listener.onResult(progressResult);
+                            progressListener.onResult(progressResult);
                         }
 
                         if (multipartFormUpload) {
@@ -354,7 +354,7 @@ public class TransferModule {
                         safeClose(readResult.inputStream);
                         safeClose(sendStream);
                         progressResult.put("progress", 1);
-                        listener.onResult(progressResult);
+                        progressListener.onResult(progressResult);
                     }
 
                     String responseString;
@@ -385,11 +385,11 @@ public class TransferModule {
                     if (!TextUtils.isEmpty(responseString))result.put("data", responseString);
                     if (responseHeaders != null) result.put("headers", responseHeaders);
                     if (conn != null) conn.disconnect();
-                    listener.onResult(result);
+                    resListener.onResult(result);
                 } catch (IOException e) {
                     e.printStackTrace();
                     if (conn != null) conn.disconnect();
-                    listener.onResult(Util.getError(Constant.UPLOAD_INTERNAL_ERROR, Constant.UPLOAD_INTERNAL_ERROR_CODE));
+                    resListener.onResult(Util.getError(Constant.UPLOAD_INTERNAL_ERROR, Constant.UPLOAD_INTERNAL_ERROR_CODE));
                 }
             }
         });
